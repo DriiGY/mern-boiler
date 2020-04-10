@@ -1,19 +1,45 @@
 const express = require('express');
 const app = express();
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
+const cors = require('cors');
+const { User } = require('./model/User');
 
 
-mongoose.connect('mongodb+srv://admin:eclipse123solar123@cluster0-fl16v.mongodb.net/boilerplate?retryWrites=true&w=majority',
+const config = require('./config/key');
+
+
+mongoose.connect(config.mongoURI,
     {
         useNewUrlParser: true, useUnifiedTopology: true,
         useCreateIndex: true, useFindAndModify: false
     })
-    .then(() => console.log('mongosb connected...'))
+    .then(() => console.log('mongodb connected...'))
     .catch(err => console.log(`Error: ${err}`));
 
 
+app.use(cors())
+//to get json data
+// support parsing of application/json type post data
+app.use(express.json());
+app.use(cookieParser());
+
+
 app.get('/', (req, res) => {
-    res.send('hi world!!!!');
+    res.send('hi worlfefefed!!!!');
 });
 
-app.listen(5000);
+app.post('/api/users/register', (req, res) => {
+
+    const user = new User(req.body);
+    user.save((err, userData) => {
+        if (err) return res.json({ sucess: false, err })
+    })
+
+    return res.status(200).json({ sucess: true });
+})
+
+app.listen(5000, () => {
+    console.log("server running...");
+});
