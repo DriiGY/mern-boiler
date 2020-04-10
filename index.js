@@ -4,11 +4,13 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
-const { User } = require('./model/User');
+const { User } = require('./model/user');
 
 
 const config = require('./config/key');
 
+//get middleware auth
+const { auth } = require('./middleware/auth');
 
 mongoose.connect(config.mongoURI,
     {
@@ -26,8 +28,15 @@ app.use(express.json());
 app.use(cookieParser());
 
 
-app.get('/', (req, res) => {
-    res.send('hi worlfefefed!!!!');
+app.get('/api/user/auth', auth, (req, res) => {
+    res.status(200).json({
+        _id: req.user._id,
+        isAuth: true,
+        email: req.user.email,
+        name: req.user.name,
+        lastname: req.user.lastname,
+        role: req.user.role
+    });
 });
 
 app.post('/api/users/register', (req, res) => {
@@ -38,6 +47,34 @@ app.post('/api/users/register', (req, res) => {
     })
 
     return res.status(200).json({ sucess: true });
+});
+
+app.post('/api/user/login', (req, res) => {
+    //1º find the email
+    User.findOne({ email: req.body.email }, (err, user) => {
+        //if there is an error show error else get the user
+        if (!user) return res.json({
+            loginSucess: false,
+            message: 'Auth fail, email not found'
+        })
+        //2º compare password
+        user.comparePassword(req.body.password, (err, isMatch) => {
+            //if not matched password
+            if (!isMatch) {
+                return res.json({ loginSucess: false, message: "Invalid password!" });
+            }
+        })
+        //3º generate token
+        user.generateToken((err, user) => {
+            if (err) return res.status(400).send(err);
+            res.cookie('x_auth', user.token)// If we have no errors we generate cookie named x_auth
+                .status(200)
+                .json({ loginSucess: true });
+        })
+    })
+
+
+
 })
 
 app.listen(5000, () => {
