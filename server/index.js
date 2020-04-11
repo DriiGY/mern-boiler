@@ -29,7 +29,7 @@ app.use(cookieParser());
 
 
 app.get('/', (req, res) => {
-    res.json({ "hello": "i am deployed" })
+    res.send("O Andre e um panelerote que nao sabe jogar de ahri")
 })
 
 app.get('/api/user/auth', auth, (req, res) => {
