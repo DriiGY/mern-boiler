@@ -72,9 +72,16 @@ app.post('/api/user/login', (req, res) => {
                 .json({ loginSucess: true });
         })
     })
+})
 
-
-
+//request to this logs me out
+app.get('/api/user/logout', auth, (req, res) => {
+    User.findOneAndUpdate({ _id: req.user.id }, { token: '' }, (err, doc) => {
+        if (err) return res.json({ sucess: false, err });
+        return res.status(200).send({
+            sucess: true
+        })
+    })
 })
 
 app.listen(5000, () => {
